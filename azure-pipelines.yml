@@ -1,38 +1,40 @@
+# Trigger pipeline on push to main branch
 trigger:
-  branches:
-    include:
-      - main
+- main
 
+# Use self-hosted agent pool
 pool:
   name: Default
 
+# Global variables
 variables:
   NODE_VERSION: '18.x'
 
+# Pipeline steps
 steps:
-# 1️⃣ Checkout code
+# 1. Checkout source code
 - checkout: self
+  displayName: Checkout repository
 
-# 2️⃣ Install Node.js
+# 2. Install Node.js
 - task: NodeTool@0
+  displayName: Install Node.js
   inputs:
     versionSpec: $(NODE_VERSION)
-  displayName: 'Install Node.js'
 
-# 3️⃣ Install dependencies
-- script: |
-    npm install
-  displayName: 'Install npm dependencies'
-
-# 4️⃣ Build React app
-- script: |
-    npm run build
-  displayName: 'Build React app'
-
-# 5️⃣ Deploy to Azure Static Web Apps
-- task: AzureStaticWebApp@0
-  displayName: 'Deploy to Azure Static Web App'
+# 3. Cache npm dependencies (improves speed)
+- task: Cache@2
+  displayName: Cache npm packages
   inputs:
-    app_location: "/"
-    output_location: "build"
-    azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
+    key: 'npm | "$(Agent.OS)" | ad-reactjs/package-lock.json'
+    path: $(Pipeline.Workspace)/.npm
+
+# 4. Install npm dependencies
+- script: npm ci --cache $(Pipeline.Workspace)/.npm
+  workingDirectory: ad-reactjs
+  displayName: Install npm dependencies
+
+# 5. Build React application
+- script: npm run build
+  workingDirectory: ad-reactjs
+  displayName: Build React app
