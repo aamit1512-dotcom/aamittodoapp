@@ -16,7 +16,7 @@ function App() {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.heading}>Welcome to AD Jewells</h1>
+      <h1 style={styles.heading}>Welcome to AD Jewell</h1>
 
       <div style={styles.buttonContainer}>
         <button style={styles.button} onClick={() => setSelected("Item")}>
